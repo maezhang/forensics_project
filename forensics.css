@@ -1,0 +1,29 @@
+div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* upload button css: https://nikitahl.com/custom-styled-input-type-file */ 
+button, input[type=file]::file-selector-button {
+    margin-right: 20px;
+    border: none;
+    background: #084cdf;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    transition: background .2s ease-in-out;
+  }
+  
+button:hover, input[type=file]::file-selector-button:hover {
+background: #0d45a5;
+}
+
+.box {
+    margin: 20px;
+    padding: 30px;
+    border-color: #6b96f3;
+    border-width: 2px;
+    border-style: dashed;
+}

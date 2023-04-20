@@ -1,0 +1,16 @@
+{
+  "name": "upload",
+  "css_prefix_text": "icon-",
+  "css_use_suffix": false,
+  "hinting": true,
+  "units_per_em": 1000,
+  "ascent": 850,
+  "glyphs": [
+    {
+      "uid": "eeec3208c90b7b48e804919d0d2d4a41",
+      "css": "upload",
+      "code": 59392,
+      "src": "fontawesome"
+    }
+  ]
+}
