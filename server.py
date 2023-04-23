@@ -6,11 +6,11 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         uploaded_file = self.rfile.read(content_length)
-        print(self.headers)
+        # print(self.headers)
         # Save the uploaded file to disk
         # with open('uploads/' + self.headers['Filename'], 'wb') as f:
-        with open('uploads/' + 'file.dd', 'wb') as f:
-            f.write(uploaded_file)
+        # with open('uploads/' + 'file.dd', 'wb') as f:
+        #     f.write(uploaded_file)
 
         # Run python script on file.dd
         subprocess.run(["python", "forensics_project.py"])
