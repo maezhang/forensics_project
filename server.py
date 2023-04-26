@@ -1,27 +1,118 @@
 import http.server
 import socketserver
 import subprocess
+import re
+import os
+import urllib.request, urllib.parse, urllib.error
+import html
+import shutil
+import mimetypes
+from io import BytesIO
+import json
+from jinja2 import Environment, FileSystemLoader
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        uploaded_file = self.rfile.read(content_length)
-        # print(self.headers)
-        # Save the uploaded file to disk
-        # with open('uploads/' + self.headers['Filename'], 'wb') as f:
-        # with open('uploads/' + 'file.dd', 'wb') as f:
-        #     f.write(uploaded_file)
+        """Serve a POST request."""
+        r, info = self.deal_post_data()
+        print((r, info, "by: ", self.client_address))
+        f = BytesIO()
+        f.write(b'<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
+        # f.write(b"<html>\n<title>Upload Result Page</title>\n")
+        # f.write(b"<body>\n<h2>Upload Result Page</h2>\n")
+        # f.write(b"<hr>\n")
+        # if r:
+        #     f.write(b"<strong>Success:</strong>")
+        # else:
+        #     f.write(b"<strong>Failed:</strong>")
+        # f.write(info.encode())
+        # f.write(("<br><a href=\"%s\">back</a>" % self.headers['referer']).encode())
+        # f.write(b"<hr><small>Powerd By: bones7456, check new version at ")
+        # f.write(b"<a href=\"http://li2z.cn/?s=SimpleHTTPServerWithUpload\">")
+        # f.write(b"here</a>.</small></body>\n</html>\n")
+        length = f.tell()
+        f.seek(0)
 
-        # Run python script on file.dd
-        subprocess.run(["python", "forensics_project.py"])
+        search = 'uploads/'
+        tmp_str = info[info.find(search)+len(search):]
+        image_file = tmp_str[:tmp_str.find("'")]
+        print(image_file)
 
-        # Send a response back to the client
+        subprocess.run(["python", "forensics_project.py", image_file])
         self.send_response(200)
-        self.send_header('Content-type','text/html')
+        self.send_header("Content-type", "text/html")
+        self.send_header("Content-Length", str(length))
         self.end_headers()
+        # if f:
+        #     self.copyfile(f, self.wfile)
+        #     f.close()
+        if not r:
+            self.wfile.write(b'Something went wrong.')
+            return
+
+        print('R value: ', r)
+        print('info value: ', r)
+        
+
+        # render new html
+
+        with open('report.json', 'r') as d:
+            report = json.load(d)
+
+        fileLoader = FileSystemLoader('templates')
+        env = Environment(loader=fileLoader)
+        rendered = env.get_template('report_template.html').render(report=report, title="Report")
+
+        with open('report.html', 'w') as f:
+            f.write(rendered)
+
         f = open('./report.html', 'rb')
         self.wfile.write(f.read())
-        self.wfile.write(b'File uploaded successfully.')
+
+        
+    def deal_post_data(self):
+        content_type = self.headers['content-type']
+        if not content_type:
+            return (False, "Content-Type header doesn't contain boundary")
+        boundary = content_type.split("=")[1].encode()
+        remainbytes = int(self.headers['content-length'])
+        line = self.rfile.readline()
+        remainbytes -= len(line)
+        if not boundary in line:
+            return (False, "Content NOT begin with boundary")
+        line = self.rfile.readline()
+        remainbytes -= len(line)
+        fn = re.findall(r'Content-Disposition.*name="file"; filename="(.*)"', line.decode())
+        if not fn:
+            return (False, "Can't find out file name...")
+        path = self.translate_path(self.path)
+        fn = os.path.join(path, fn[0])
+        line = self.rfile.readline()
+        remainbytes -= len(line)
+        line = self.rfile.readline()
+        remainbytes -= len(line)
+        print('my path', fn)
+        try:
+            out = open(fn, 'wb')
+        except IOError:
+            return (False, "Can't create file to write, do you have permission to write?")
+                
+        preline = self.rfile.readline()
+        remainbytes -= len(preline)
+        while remainbytes > 0:
+            line = self.rfile.readline()
+            remainbytes -= len(line)
+            if boundary in line:
+                preline = preline[0:-1]
+                if preline.endswith(b'\r'):
+                    preline = preline[0:-1]
+                out.write(preline)
+                out.close()
+                return (True, "File '%s' upload success!" % fn)
+            else:
+                out.write(preline)
+                preline = line
+        return (False, "Unexpect Ends of data.")
 
 PORT = 8000
 

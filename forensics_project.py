@@ -5,12 +5,15 @@
 
 import subprocess
 import re
+import json
+import sys
 
 ############################
 # LIST OF VARIABLES
 ############################
 # var (type): description
 
+# commands (str): list of all successful commands
 # md5sum_str (str): image's hash value (MD5)
 # sha1sum_str (str): image's hash value (SHA-1)
 # mmls_str (str): "mmls practice1.dd" output
@@ -19,12 +22,14 @@ import re
 # partition_names (str list): list of data partition names (part2, part3 etc)
 # partition_fs_types (str list): list of filesystem type
 # fls_str (str list): list of fls -rd output
-# filepath (str 2D list): list of filepath list (deleted files only)
+# deleted_filepath (str 2D list): list of deleted_filepath list (deleted files only)
 # inode (str 2D list): list of inode list (deleted files only)
 # istat (str 2D list): list of istat output list (deleted files only)
-# creation date (str 2D list): list of file creation date (deleted files only)
+# creationdate (str 2D list): list of file creation date (deleted files only)
 
-image_file = "uploads/practice1.dd"
+image_file_name = sys.argv[1]
+image_file = "uploads/" + image_file_name
+commands = []
 
 ############################
 # md5sum command/image's hash value (MD5) 
@@ -33,6 +38,7 @@ image_file = "uploads/practice1.dd"
 try:
 	cmd = 'md5sum ' + image_file
 	result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+	commands.append(cmd)
 	md5sum_str = result.decode('utf-8')
 	md5sum_str = md5sum_str.split()[0]
 	print(f"md5sum_str: \n{md5sum_str}\n")
@@ -49,6 +55,7 @@ try:
 	result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
 	sha1sum_str = result.decode('utf-8')
 	sha1sum_str = sha1sum_str.split()[0]
+	commands.append(cmd)
 	print(f"sha1sum_str: \n{sha1sum_str}\n")
 except subprocess.CalledProcessError as e:
         print(e.returncode)
@@ -61,7 +68,7 @@ except subprocess.CalledProcessError as e:
 try:
 	cmd = 'mmls ' + image_file
 	result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
-
+	commands.append(cmd)
 except subprocess.CalledProcessError as e:
         print(e.returncode)
         print(e.output)
@@ -101,28 +108,39 @@ print(f"data_parts: \n{data_parts}\n")
 partition_names = []
 for i in range(num_of_parts):
     if i not in data_parts:
-        partition_names.append(None)
+        # partition_names.append(None)
         continue
     try:
         cmd = 'mmcat ' + image_file + ' ' + str(i) + ' > part' + str(i) + '.dd'
         result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        commands.append(cmd)
         partition_names.append('part' + str(i))
     except subprocess.CalledProcessError as e:
         print(e.returncode)
         print(e.output)
         break
 
+partition_hashes = []
+for i in range(len(partition_names)):
+    try:
+        cmd = 'md5sum ' + partition_names[i] + '.dd'
+        result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        commands.append(cmd)
+        md5sum_str = result.decode('utf-8')
+        md5sum_str = md5sum_str.split()[0]
+        partition_hashes.append(md5sum_str)
+    except subprocess.CalledProcessError as e:
+            print(e.returncode)
+            print(e.output)
 #######################################
 # FIGURE OUT FILE SYSTEM OF PARTITIONS
 #######################################
 partition_fs_types = []
-for i in range(num_of_parts):
-    if i not in data_parts:
-        partition_fs_types.append(None)
-        continue
+for i in data_parts:
     try:
         cmd = 'fsstat part' + str(i) + '.dd'
         result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        commands.append(cmd)
         result_str = result.decode('utf-8')
         substr = 'File System Type: '
         start_ind = result_str.find(substr) + len(substr)
@@ -140,7 +158,7 @@ print(f"partition_fs_types: \n{partition_fs_types}\n")
 #######################################
 # File Recovery
 #######################################
-for i in range(num_of_parts):
+for i in range(len(data_parts)):
     # goto next loop if file type is not determine
     if partition_fs_types[i] == None:
         continue
@@ -150,9 +168,11 @@ for i in range(num_of_parts):
         # Overwrite the directory if the directory exists
         cmd = 'mkdir -p ./' + partition_names[i]
         result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        commands.append(cmd)
         # File Recovery
         cmd = 'tsk_recover -e ' + partition_names[i] + '.dd ./' + partition_names[i]
         result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        commands.append(cmd)
     except subprocess.CalledProcessError as e:
         print(e.returncode)
         print(e.output)
@@ -162,12 +182,12 @@ for i in range(num_of_parts):
 #######################################
 
 fls_str = []
-filepath = []
-for i in range(num_of_parts):
+deleted_filepath = []
+for i in range(len(data_parts)):
     # goto next loop if file type is not determine
     if partition_fs_types[i] == None:
         fls_str.append(None)
-        filepath.append(None)
+        deleted_filepath.append(None)
         continue
     elif "FAT" in partition_fs_types[i]:
     	fstype = "fat"
@@ -175,23 +195,24 @@ for i in range(num_of_parts):
     	fstype = "ntfs"
     else:
         fls_str.append(None)
-        filepath.append(None)
+        deleted_filepath.append(None)
         continue  
 
     try:
         # fls -f ntfs part12.dd
         cmd = 'fls -f ' + fstype + ' -rd ' + partition_names[i] + '.dd'
         result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+        commands.append(cmd)
         fls_str.append(result.decode('utf-8'))
-        # Extract filepath
+        # Extract deleted_filepath
         pattern = r'\t(.*?)\n'
-        filepath.append(re.findall(pattern, fls_str[i])) 
+        deleted_filepath.append(re.findall(pattern, fls_str[i]))
         
     except subprocess.CalledProcessError as e:
         print(e.returncode)
         print(e.output)
 
-print(f"filepath (str 2D list): \n{filepath}\n")	
+print(f"deleted_filepath (str 2D list): \n{deleted_filepath}\n")
 
 #######################################
 # Extract inode
@@ -199,8 +220,8 @@ print(f"filepath (str 2D list): \n{filepath}\n")
 
 inode = []
 
-for i in range(num_of_parts):
-    if filepath[i] == None:
+for i in range(len(data_parts)):
+    if deleted_filepath[i] == None:
         inode.append(None)
         continue
     else:
@@ -213,11 +234,12 @@ print(f"inode (str 2D list): \n{inode}\n")
 #######################################
 
 istat = []
-creationdate = [[] for _ in range(num_of_parts)]
+creationdate = [[] for _ in range(len(data_parts))]
 
-for i in range(num_of_parts):
+for i in range(len(data_parts)):
     if inode[i] == None:
     	istat.append(None)
+    	creationdate[i] = None
     	continue
     elif "FAT" in partition_fs_types[i]:
     	fstype = "fat"
@@ -229,6 +251,7 @@ for i in range(num_of_parts):
 	#  istat -f ntfs part12.dd 241
             cmd = 'istat -f ' + fstype + ' ' + partition_names[i] + '.dd ' + j
             result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+            commands.append(cmd)
             temp = result.decode('utf-8')
             pattern = r'Created:\t(.+)\n'
             temp = re.search(pattern, temp)
@@ -236,18 +259,91 @@ for i in range(num_of_parts):
         except subprocess.CalledProcessError as e:
             print(e.returncode)
             print(e.output)
-print(f"creationdate (str 2D list): \n{creationdate}\n")		
+print(f"creationdate (str 2D list): \n{creationdate}\n")	
+
+#######################################
+# Get hash for deleted files
+#######################################
+
+# hashdeletedf = [[] for _ in range(len(data_parts))]
+# md5sumtmp = []
+
+# for i in range(len(data_parts)):
+#     if partition_fs_types[i] == None:
+#         hashdeletedf.append(None)
+#     elif "FAT" not in partition_fs_types[i] and "NTFS" not in partition_fs_types[i]:
+#     	hashdeletedf.append(None)
+#     	continue
+#     else:
+#         for j in deleted_filepath[i]:
+#             try:
+#                 print(f"INDEX{i}{partition_names[i]}{j}")
+#                 cmd = 'md5sum ./' + partition_names[i] + '/' + j
+#                 result = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+#                 md5sum_str = result.decode('utf-8')
+#                 md5sum_str = md5sum_str.split()[0]
+#                 hashdeletedf[i].append(md5sum_str)
+#             except subprocess.CalledProcessError as e:
+#                 print(e.returncode)
+#                 print(e.output)
+
+# print(f"hashdeletedf (str 2D list): \n{hashdeletedf}\n")
+
+#######################################
+# Remove all None
+#######################################
+
+# print('len of deleted_filepath: ', len(deleted_filepath))
+# print('creationdate: ', len(creationdate))
+# partition_names = [x for x in partition_names if x is not None]
+# partition_fs_types = [x for x in partition_fs_types if x is not None]
+# fls_str = [x for x in fls_str if x is not None]
+# deleted_filepath = [x for x in deleted_filepath if x is not None]
+# inode = [x for x in inode if x is not None]
+# istat = [x for x in istat if x is not None]
+# creationdate = [x for x in creationdate if x is not None]
 
 
+print(f"*** RESULTS ***\n")
+print(f"md5sum_str: \n{md5sum_str}\n")
+print(f"sha1sum_str: \n{sha1sum_str}\n")
+print(f"num_of_parts: \n{num_of_parts}\n")
+print(f"data_parts: \n{data_parts}\n")
+print(f"partition_names: \n{partition_names}\n")
+print(f"partition_fs_types: \n{partition_fs_types}\n")
+print(f"deleted_filepath (str 2D list): \n{deleted_filepath}\n")
+print(f"inode (str 2D list): \n{inode}\n")	
+print(f"creationdate (str 2D list): \n{creationdate}\n")
+print(f"successful commands:\n {commands}\n")	
 
+print('DELETED FILEPATHS: ', len(deleted_filepath))
+print('partition hashes: ', len(partition_hashes))
 
+# print('creationdate: ', len(creationdate), len(creationdate[3]))
+# print('hashes: ', len(hashdeletedf), len(hashdeletedf[3]))
+report = {}
+report['name'] = image_file_name
+report['hash'] = md5sum_str
+partitions = []
+for i in range(len(data_parts)):
+    partitions_obj = {}
+    partitions_obj['name'] = partition_names[i]
+    partitions_obj['fileSystem'] = partition_fs_types[i]
+    partitions_obj['hash'] = partition_hashes[i]
+    if partition_fs_types[i] is not None and deleted_filepath[i] is not None:
+        deleted_files_arr = []
+        for j in range(len(deleted_filepath[i])):
+            deleted_files_obj = {}
+            deleted_files_obj['name'] = deleted_filepath[i][j]
+            # deleted_files_obj['hash'] = hashdeletedf[i][j] # TODO: get deleted_hashes
+            deleted_files_obj['creationDate'] = creationdate[i][j]
+            deleted_files_arr.append(deleted_files_obj)
+        partitions_obj['deletedFiles'] = deleted_files_arr
+    partitions.append(partitions_obj)
+report['partitions'] = partitions
 
-
-
-
-
-
-
+with open('report.json', 'w', encoding='utf-8') as f:
+    json.dump(report, f, ensure_ascii=False, indent=4)
 
 
 

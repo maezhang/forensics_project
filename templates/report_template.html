@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>File Upload Form</title>
+</head>
+<body>
+	<h1>Auto-Inspector results for {{ report.name }}</h3>
+	<table border="1">
+		<tr>
+			<th>Image name</th>
+			<th>Hash</th>
+		</tr>
+		<tr>
+			<td>{{ report.name }}</td>
+			<td>{{ report.hash }}</td>
+		</tr>
+	</table>
+	<h3>Partition details</h3>
+	<table border="1">
+		<tr>
+			<th>Partitions (with data)</th>
+			<th>File system</th>
+			<th>Hash</th>
+		</tr>
+		{% for part in report.partitions %}
+		<tr>
+			<td>{{ part.name }}</td>
+			<td>{{ part.fileSystem }}</td>
+			<td>{{ part.hash }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+	{% for part in report.partitions %}
+	{% if 'deletedFiles' in part %}
+	<h3>Deleted file details in {{ part.name }}</h3>
+	<table border="1">
+		<tr>
+			<th>File path</th>
+			<th>Hash</th>
+			<th>Creation date</th>
+		</tr>
+			{% for file in part.deletedFiles %}
+			<tr>
+				<td>{{ file.name }}</td>
+				<td>{{ file.hash }}</td>
+				<td>{{ file.creationDate }}</td>
+			</tr>
+			{% endfor %}
+	</table>
+	{% endif %}
+	{% endfor %}
+</body>
+</html>
