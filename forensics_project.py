@@ -9,6 +9,7 @@ import json
 import sys
 from datetime import datetime
 import pytz
+import os
 
 ############################
 # LIST OF VARIABLES
@@ -313,6 +314,16 @@ dt_string = dt_us_eastern.strftime("%m/%d/%Y %H:%M:%S")
 #######################################
 # Output information to json file
 #######################################
+def path_to_dict(path):
+    d = {'name': os.path.basename(path)}
+    if os.path.isdir(path):
+        d['type'] = "directory"
+        d['children'] = [path_to_dict(os.path.join(path,x)) for x in os.listdir\
+(path)]
+    else:
+        d['type'] = "file"
+    return d
+
 report = {}
 report['time'] = dt_string
 report['name'] = image_file_name
@@ -323,6 +334,8 @@ for i in range(len(data_parts)):
     partitions_obj['name'] = partition_names[i]
     partitions_obj['fileSystem'] = partition_fs_types[i]
     partitions_obj['hash'] = partition_hashes[i]
+    if partition_fs_types[i] is not None:
+        partitions_obj['tskRecover'] = path_to_dict(partition_names[i])
     if partition_fs_types[i] is not None and deleted_filepath[i] is not None:
         deleted_files_arr = []
         for j in range(len(deleted_filepath[i])):

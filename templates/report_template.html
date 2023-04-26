@@ -2,10 +2,17 @@
 <html>
 <head>
 	<title>File Upload Form</title>
+	<link rel="stylesheet" href="forensics.css">
 </head>
 <body>
 	<h1>Auto-Inspector results for {{ report.name }}</h1>
 	<p>Inspected at {{ report.time }}</p>
+	<div class="tab">
+		<button class="tablinks" onclick="openTab(event, 'Report')">Report</button>
+		<button class="tablinks" onclick="openTab(event, 'Tree')">Tree</button>
+		<button class="tablinks" onclick="openTab(event, 'Commands')">Commands</button>
+	</div>
+	<div id="Report" class="tabcontent">
 	<table border="1">
 		<tr>
 			<th>Image name</th>
@@ -37,24 +44,75 @@
 	<table border="1">
 		<tr>
 			<th>File path</th>
-			<th>Hash</th>
+			<!-- <th>Hash</th> -->
 			<th>Creation date</th>
 		</tr>
 			{% for file in part.deletedFiles %}
 			<tr>
 				<td>{{ file.name }}</td>
-				<td>{{ file.hash }}</td>
+				<!-- <td>{{ file.hash }}</td> -->
 				<td>{{ file.creationDate }}</td>
 			</tr>
 			{% endfor %}
 	</table>
 	{% endif %}
 	{% endfor %}
-	<h3>Successful commands run by Auto-Inspector</h3>
-	<table border="1">
-	{% for cmd in report.commands %}
-		<tr><td>{{ cmd }}<td></tr>
+	</div>
+	<div id="Tree" class="tabcontent">
+	{% for part in report.partitions %}
+	{% if 'tskRecover' in part %}
+	<h3>TSK recover file tree from {{ part.name }}</h3>
+		<ul class="myUL">
+			<li><span class="caret">{{ part.tskRecover.name }}</span>
+				<ul class="nested">
+					{% for item in part.tskRecover.children recursive %}
+					{% if item.children %}
+					<li><span class="caret">{{ item.name }}</span>
+							<ul class="nested">{{ loop(item.children) }}</ul>
+					</li>
+					{% else %}
+					<li>{{ item.name }}</li>
+					{%endif %}
+					{% endfor %}
+				</ul>
+			</li>
+		</ul>
+	{% endif %}
 	{% endfor %}
-	</table>
+	<script>
+		var toggler = document.getElementsByClassName("caret");
+		var i;
+		
+		for (i = 0; i < toggler.length; i++) {
+		  toggler[i].addEventListener("click", function() {
+			this.parentElement.querySelector(".nested").classList.toggle("active");
+			this.classList.toggle("caret-down");
+		  });
+		}
+	</script>
+	</div>
+	<div id="Commands" class="tabcontent">
+	<h3>Successful commands run by Auto-Inspector</h3>
+	<ol>
+	{% for cmd in report.commands %}
+		<li>{{ cmd }}</li>
+	{% endfor %}
+	</ol>
+	</div>
+	<script>
+		function openTab(evt, cityName) {
+		  var i, tabcontent, tablinks;
+		  tabcontent = document.getElementsByClassName("tabcontent");
+		  for (i = 0; i < tabcontent.length; i++) {
+			tabcontent[i].style.display = "none";
+		  }
+		  tablinks = document.getElementsByClassName("tablinks");
+		  for (i = 0; i < tablinks.length; i++) {
+			tablinks[i].className = tablinks[i].className.replace(" active", "");
+		  }
+		  document.getElementById(cityName).style.display = "block";
+		  evt.currentTarget.className += " active";
+		}
+	</script>
 </body>
 </html>

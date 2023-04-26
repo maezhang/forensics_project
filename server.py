@@ -30,7 +30,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         subprocess.run(["python", "forensics_project.py", image_file])
         self.send_response(200)
         self.send_header("Content-type", "text/html")
-        self.send_header("Content-Length", str(length))
+        # self.send_header("Content-Length", str(length))
         self.end_headers()
 
         if not r:

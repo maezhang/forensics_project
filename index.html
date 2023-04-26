@@ -6,16 +6,15 @@
     <link rel="stylesheet" href="./fontello-8b19267d/css/upload.css">
 </head>
 <body>
-    <div>
+    <div class="vert">
         <h1>Auto-Inspector</h1>
         <p>The Auto-Inspector will analyze your disk image automatically and generate a report based on its findings.</p>
         <form action="uploads" method="post" enctype="multipart/form-data">
-            <div class="box">
-                <label for="file">Select a disk image to upload:</label>
-                <br>
-                <input type="file" name="file" id="file"><br><br>
-                <button type="submit" class="icon-upload" >Upload File</button>
-            </div>
+            <span class="vert box">
+                <label style="margin:5px" for="file">Select a disk image to upload:</label>
+                <input style="margin:5px" type="file" name="file" id="file"><br><br>
+                <button style="margin:5px" type="submit" class="icon-upload" >Upload File</button>
+            </span>
         </form>
     </div>
 </body>
