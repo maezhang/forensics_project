@@ -7,6 +7,8 @@ import subprocess
 import re
 import json
 import sys
+from datetime import datetime
+import pytz
 
 ############################
 # LIST OF VARIABLES
@@ -108,7 +110,6 @@ print(f"data_parts: \n{data_parts}\n")
 partition_names = []
 for i in range(num_of_parts):
     if i not in data_parts:
-        # partition_names.append(None)
         continue
     try:
         cmd = 'mmcat ' + image_file + ' ' + str(i) + ' > part' + str(i) + '.dd'
@@ -289,20 +290,6 @@ print(f"creationdate (str 2D list): \n{creationdate}\n")
 
 # print(f"hashdeletedf (str 2D list): \n{hashdeletedf}\n")
 
-#######################################
-# Remove all None
-#######################################
-
-# print('len of deleted_filepath: ', len(deleted_filepath))
-# print('creationdate: ', len(creationdate))
-# partition_names = [x for x in partition_names if x is not None]
-# partition_fs_types = [x for x in partition_fs_types if x is not None]
-# fls_str = [x for x in fls_str if x is not None]
-# deleted_filepath = [x for x in deleted_filepath if x is not None]
-# inode = [x for x in inode if x is not None]
-# istat = [x for x in istat if x is not None]
-# creationdate = [x for x in creationdate if x is not None]
-
 
 print(f"*** RESULTS ***\n")
 print(f"md5sum_str: \n{md5sum_str}\n")
@@ -321,7 +308,16 @@ print('partition hashes: ', len(partition_hashes))
 
 # print('creationdate: ', len(creationdate), len(creationdate[3]))
 # print('hashes: ', len(hashdeletedf), len(hashdeletedf[3]))
+
+now = datetime.now()
+dt_us_eastern = datetime.now(pytz.timezone('America/New_York'))
+dt_string = dt_us_eastern.strftime("%m/%d/%Y %H:%M:%S")
+
+#######################################
+# Output information to json file
+#######################################
 report = {}
+report['time'] = dt_string
 report['name'] = image_file_name
 report['hash'] = md5sum_str
 partitions = []

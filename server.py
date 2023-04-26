@@ -18,34 +18,21 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         print((r, info, "by: ", self.client_address))
         f = BytesIO()
         f.write(b'<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
-        # f.write(b"<html>\n<title>Upload Result Page</title>\n")
-        # f.write(b"<body>\n<h2>Upload Result Page</h2>\n")
-        # f.write(b"<hr>\n")
-        # if r:
-        #     f.write(b"<strong>Success:</strong>")
-        # else:
-        #     f.write(b"<strong>Failed:</strong>")
-        # f.write(info.encode())
-        # f.write(("<br><a href=\"%s\">back</a>" % self.headers['referer']).encode())
-        # f.write(b"<hr><small>Powerd By: bones7456, check new version at ")
-        # f.write(b"<a href=\"http://li2z.cn/?s=SimpleHTTPServerWithUpload\">")
-        # f.write(b"here</a>.</small></body>\n</html>\n")
         length = f.tell()
         f.seek(0)
 
+        # find uploaded image file name
         search = 'uploads/'
         tmp_str = info[info.find(search)+len(search):]
         image_file = tmp_str[:tmp_str.find("'")]
-        print(image_file)
 
+        # trigger processing script
         subprocess.run(["python", "forensics_project.py", image_file])
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.send_header("Content-Length", str(length))
         self.end_headers()
-        # if f:
-        #     self.copyfile(f, self.wfile)
-        #     f.close()
+
         if not r:
             self.wfile.write(b'Something went wrong.')
             return
@@ -53,9 +40,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         print('R value: ', r)
         print('info value: ', r)
         
-
         # render new html
-
         with open('report.json', 'r') as d:
             report = json.load(d)
 
