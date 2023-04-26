@@ -50,5 +50,11 @@
 	</table>
 	{% endif %}
 	{% endfor %}
+	<h3>Successful commands run by Auto-Inspector</h3>
+	<table border="1">
+	{% for cmd in report.commands %}
+		<tr><td>{{ cmd }}<td></tr>
+	{% endfor %}
+	</table>
 </body>
 </html>

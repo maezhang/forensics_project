@@ -36,9 +36,6 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         if not r:
             self.wfile.write(b'Something went wrong.')
             return
-
-        print('R value: ', r)
-        print('info value: ', r)
         
         # render new html
         with open('report.json', 'r') as d:

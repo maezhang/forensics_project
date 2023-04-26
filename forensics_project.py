@@ -303,9 +303,6 @@ print(f"inode (str 2D list): \n{inode}\n")
 print(f"creationdate (str 2D list): \n{creationdate}\n")
 print(f"successful commands:\n {commands}\n")	
 
-print('DELETED FILEPATHS: ', len(deleted_filepath))
-print('partition hashes: ', len(partition_hashes))
-
 # print('creationdate: ', len(creationdate), len(creationdate[3]))
 # print('hashes: ', len(hashdeletedf), len(hashdeletedf[3]))
 
@@ -337,6 +334,7 @@ for i in range(len(data_parts)):
         partitions_obj['deletedFiles'] = deleted_files_arr
     partitions.append(partitions_obj)
 report['partitions'] = partitions
+report['commands'] = commands
 
 with open('report.json', 'w', encoding='utf-8') as f:
     json.dump(report, f, ensure_ascii=False, indent=4)

@@ -5,7 +5,7 @@
 </head>
 <body>
 	<h1>Auto-Inspector results for practice1.dd</h1>
-	<p>Inspected at 04/25/2023 21:39:12</p>
+	<p>Inspected at 04/25/2023 21:52:34</p>
 	<table border="1">
 		<tr>
 			<th>Image name</th>
@@ -224,5 +224,109 @@
 	</table>
 	
 	
+	<h3>Successful commands run by Auto-Inspector</h3>
+	<table border="1">
+	
+		<tr><td>md5sum uploads/practice1.dd<td></tr>
+	
+		<tr><td>sha1sum uploads/practice1.dd<td></tr>
+	
+		<tr><td>mmls uploads/practice1.dd<td></tr>
+	
+		<tr><td>mmcat uploads/practice1.dd 2 > part2.dd<td></tr>
+	
+		<tr><td>mmcat uploads/practice1.dd 3 > part3.dd<td></tr>
+	
+		<tr><td>mmcat uploads/practice1.dd 4 > part4.dd<td></tr>
+	
+		<tr><td>mmcat uploads/practice1.dd 8 > part8.dd<td></tr>
+	
+		<tr><td>mmcat uploads/practice1.dd 12 > part12.dd<td></tr>
+	
+		<tr><td>md5sum part2.dd<td></tr>
+	
+		<tr><td>md5sum part3.dd<td></tr>
+	
+		<tr><td>md5sum part4.dd<td></tr>
+	
+		<tr><td>md5sum part8.dd<td></tr>
+	
+		<tr><td>md5sum part12.dd<td></tr>
+	
+		<tr><td>fsstat part2.dd<td></tr>
+	
+		<tr><td>fsstat part4.dd<td></tr>
+	
+		<tr><td>fsstat part8.dd<td></tr>
+	
+		<tr><td>fsstat part12.dd<td></tr>
+	
+		<tr><td>mkdir -p ./part2<td></tr>
+	
+		<tr><td>tsk_recover -e part2.dd ./part2<td></tr>
+	
+		<tr><td>mkdir -p ./part4<td></tr>
+	
+		<tr><td>tsk_recover -e part4.dd ./part4<td></tr>
+	
+		<tr><td>mkdir -p ./part8<td></tr>
+	
+		<tr><td>tsk_recover -e part8.dd ./part8<td></tr>
+	
+		<tr><td>mkdir -p ./part12<td></tr>
+	
+		<tr><td>tsk_recover -e part12.dd ./part12<td></tr>
+	
+		<tr><td>fls -f fat -rd part8.dd<td></tr>
+	
+		<tr><td>fls -f ntfs -rd part12.dd<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 295<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 298<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 301<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 1200<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 1207<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 1225<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 1243<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 15<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 17<td></tr>
+	
+		<tr><td>istat -f fat part8.dd 539402<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 0<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 0<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 0<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 16<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 17<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 18<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 19<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 20<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 21<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 22<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 23<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 241<td></tr>
+	
+		<tr><td>istat -f ntfs part12.dd 248<td></tr>
+	
+	</table>
 </body>
 </html>
